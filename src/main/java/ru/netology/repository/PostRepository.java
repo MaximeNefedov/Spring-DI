@@ -52,6 +52,7 @@ public class PostRepository {
     public boolean removeById(long id) {
         if (posts.get(id) != null) {
             posts.remove(id);
+            counter.getAndDecrement();
             return true;
         } else {
             return false;

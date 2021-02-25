@@ -1,57 +1,35 @@
 package ru.netology.controller;
-
-import com.google.gson.Gson;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import ru.netology.model.Post;
 import ru.netology.service.PostService;
-import jakarta.servlet.http.*;
-import java.io.IOException;
-import java.io.Reader;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api/posts")
 public class PostController {
-    public static final String APPLICATION_JSON = "application/json";
     private final PostService service;
 
     public PostController(PostService service) {
         this.service = service;
     }
 
-    public void all(HttpServletResponse response) throws IOException {
-        response.setContentType(APPLICATION_JSON);
-        final var data = service.all();
-        final var gson = new Gson();
-        response.getWriter().print(gson.toJson(data));
+    @GetMapping
+    public List<Post> all() {
+        return service.all();
     }
 
-    public void getById(long id, HttpServletResponse response) throws IOException {
-        response.setContentType(APPLICATION_JSON);
-        final var post = service.getById(id);
-        final var gson = new Gson();
-        response.getWriter().print(gson.toJson(post));
+    @GetMapping("/{id}")
+    public Post getById(@PathVariable("id") long id) {
+        return service.getById(id);
     }
 
-    public void save(Reader body, HttpServletResponse response) throws IOException {
-        response.setContentType(APPLICATION_JSON);
-        final var gson = new Gson();
-        final var post = gson.fromJson(body, Post.class);
-        final var data = service.save(post);
-        if (data != null) {
-            response.getWriter().print(gson.toJson(data));
-        } else {
-            response.getWriter().println("Сохранение не удалось");
-        }
+    @PostMapping
+    public Post save(@RequestBody Post post) {
+        return service.save(post);
     }
 
-    public void removeById(long id, HttpServletResponse response) throws IOException {
-        response.setContentType(APPLICATION_JSON);
-        int status;
-        if (service.removeById(id)) {
-            status = HttpServletResponse.SC_OK;
-        } else {
-            status = HttpServletResponse.SC_NOT_FOUND;
-        }
-        response.getWriter().print(status);
+    @DeleteMapping("{id}")
+    public void removeById(@PathVariable("id") long id) {
+        service.removeById(id);
     }
 }
