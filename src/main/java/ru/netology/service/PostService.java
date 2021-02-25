@@ -12,7 +12,6 @@ import java.util.List;
 public class PostService {
     private final PostRepository repository;
 
-    @Autowired
     public PostService(PostRepository repository) {
         this.repository = repository;
     }

@@ -18,7 +18,7 @@ public class MainServlet extends HttpServlet {
     @Override
     public void init() {
         var context = new ClassPathXmlApplicationContext("applicationContext.xml");
-        controller = context.getBean("postController", PostController.class);
+        controller = context.getBean(PostController.class);
     }
 
     @Override
