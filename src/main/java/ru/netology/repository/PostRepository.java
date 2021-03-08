@@ -5,11 +5,12 @@ import ru.netology.model.Post;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Repository
 public class PostRepository {
-    private Map<Long, Post> posts = new ConcurrentHashMap<>();
-    private AtomicInteger counter = new AtomicInteger(0);
+    private final Map<Long, Post> posts = new ConcurrentHashMap<>();
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     public PostRepository() {
         Post defaultPost = new Post(1L, "Hello");
@@ -25,25 +26,33 @@ public class PostRepository {
     }
 
     public List<Post> all() {
-        return new ArrayList<>(posts.values());
+        return new ArrayList<>(posts.values()).stream()
+                .filter(x -> !x.isDeleted())
+                .collect(Collectors.toList());
     }
 
     public Optional<Post> getById(long id) {
         Post post = posts.get(id);
-        return Optional.ofNullable(post);
+        if (post != null) {
+            if (!post.isDeleted()) {
+                return Optional.of(post);
+            }
+        }
+        return Optional.empty();
     }
 
     public Post save(Post post) {
         if (post.getId() == 0) {
-//            Создание нового поста
             post.setId(counter.incrementAndGet());
             addPost(post.getId(), post);
             return post;
-        } else if (post.getId() != 0) {
+        } else {
             if (posts.containsKey(post.getId())) {
                 Post changedPost = posts.get(post.getId());
-                changedPost.setContent(post.getContent());
-                return changedPost;
+                if (!changedPost.isDeleted()) {
+                    changedPost.setContent(post.getContent());
+                    return changedPost;
+                }
             }
         }
         return null;
@@ -51,7 +60,7 @@ public class PostRepository {
 
     public boolean removeById(long id) {
         if (posts.get(id) != null) {
-            posts.remove(id);
+            posts.get(id).setDeleteStatus(true);
             counter.getAndDecrement();
             return true;
         } else {
